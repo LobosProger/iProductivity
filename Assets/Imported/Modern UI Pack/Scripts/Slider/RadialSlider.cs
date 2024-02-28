@@ -140,7 +140,10 @@ namespace Michsky.MUIP
                 indicatorPivot.transform.localEulerAngles = new Vector3(180.0f, 0.0f, SliderAngle);
                 sliderImage.fillAmount = normalizedAngle;
 
-                valueText.text = string.Format("{0}{1}", SliderValue, isPercent ? "%" : "");
+                if(valueText != null)
+                {
+					valueText.text = string.Format("{0}{1}", SliderValue, isPercent ? "%" : "");
+				}
                 currentValue = SliderValue;
             }
         }
