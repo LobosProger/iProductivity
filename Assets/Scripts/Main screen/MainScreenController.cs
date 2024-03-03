@@ -28,10 +28,10 @@ public class MainScreenController : MonoBehaviour
 			else if(pomodoroMode.isOn)
 			{
 				Debug.Log("Pomodoro mode");
+			} else
+			{
+				Debug.LogWarning("Error with setupping toggles!");
 			}
-		} else
-		{
-			Debug.Log("Can't start activity!");
 		}
 	}
 }

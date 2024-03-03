@@ -61,14 +61,17 @@ namespace Michsky.MUIP
         {
             loadingBar.fillAmount = currentPercent / maxValue;
 
-            if (addSuffix == true) { textPercent.text = currentPercent.ToString("F" + decimals) + suffix; }
-            else { textPercent.text = currentPercent.ToString("F" + decimals); }
+            if(textPercent != null)
+            {
+				if (addSuffix == true) { textPercent.text = currentPercent.ToString("F" + decimals) + suffix; }
+				else { textPercent.text = currentPercent.ToString("F" + decimals); }
 
-            if (addPrefix == true)
-                textPercent.text = prefix + textPercent.text;
+				if (addPrefix == true)
+					textPercent.text = prefix + textPercent.text;
 
-            if (eventSource != null)
-                eventSource.value = currentPercent;
+				if (eventSource != null)
+					eventSource.value = currentPercent;
+			}
         }
 
         public void InitializeEvents()
