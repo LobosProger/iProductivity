@@ -10,15 +10,25 @@ public class CircularSlider : MonoBehaviour
 	[SerializeField] private TMP_Text sliderValue;
 
     private RadialSlider _radialSlider;
+	private int _currentMinutesSetted = 0;
 
 	private void Start()
 	{
 		_radialSlider = GetComponent<RadialSlider>();
 		_radialSlider.onValueChanged.AddListener(OnSlidedHandlerOnSlider);
+
+		float currentSliderValue = _radialSlider.currentValue;
+		sliderValue.text = (Mathf.Floor(currentSliderValue) * minutesInterval).ToString();
 	}
 
 	private void OnSlidedHandlerOnSlider(float value)
 	{
-		sliderValue.text = (Mathf.Floor(value) * minutesInterval).ToString();
+		_currentMinutesSetted = (int)(Mathf.Floor(value) * minutesInterval);
+		sliderValue.text = _currentMinutesSetted.ToString();
+	}
+
+	public int GetCurrentSettedMinutes()
+	{
+		return _currentMinutesSetted;
 	}
 }
