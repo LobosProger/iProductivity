@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class MainScreenController : MonoBehaviour
 {
-    [SerializeField] private CircularSlider circularSlider;
+    [SerializeField] public CircularSlider circularSlider;
 	[SerializeField] private Toggle regularMode;
 	[SerializeField] private Toggle pomodoroMode;
     [SerializeField] private ButtonManager startButton;
