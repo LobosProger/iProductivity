@@ -9,14 +9,6 @@ public class TimerView : MonoBehaviour
 	[SerializeField] private TMP_Text minutesText;
 	[SerializeField] private TMP_Text secondsText;
 
-	public int testSeconds;
-	public int maxTestSeconds;
-
-	private void Update()
-	{
-		ShowRemainedTime(testSeconds, maxTestSeconds);
-	}
-
 	public void ShowRemainedTime(int currentRemainedSeconds, int maxSettedSeconds)
 	{
 		float fillAmountForProgressBarTimer = ((float)currentRemainedSeconds / maxSettedSeconds);

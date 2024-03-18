@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.Events;
 
-[ExecuteAlways]
+[ExecuteInEditMode]
 public class ExtendedToggle : MonoBehaviour
 {
 	[Header("Properties")]
@@ -14,6 +15,11 @@ public class ExtendedToggle : MonoBehaviour
 	[Header("Components")]
 	[SerializeField] private CanvasGroup turnedOnCG;
     [SerializeField] private CanvasGroup turnedOffCG;
+	[Space]
+	[Header("Events")]
+	[SerializeField] private UnityEvent onTurnedOn;
+	[SerializeField] private UnityEvent onTurnedOff;
+	[SerializeField] private UnityEvent<bool> onSwitchedToggle;
 
 #if UNITY_EDITOR
 	private void Update()
@@ -57,18 +63,33 @@ public class ExtendedToggle : MonoBehaviour
 		}
 	}
 
+	private void InvokeEvents()
+	{
+		if(isOn)
+		{
+			onTurnedOn?.Invoke();
+		} else
+		{
+			onTurnedOff?.Invoke();
+		}
+
+		onSwitchedToggle?.Invoke(isOn);
+	}
+
 	public void SetToggleValue(bool value)
 	{
 		if (isOn == value)
 			return;
 
 		isOn = value;
+		InvokeEvents();
 		UpdateGraphicOfToggle();
 	}
 
 	public void SwitchToggleValue()
 	{
 		isOn = !isOn;
+		InvokeEvents();
 		UpdateGraphicOfToggle();
 	}
 
