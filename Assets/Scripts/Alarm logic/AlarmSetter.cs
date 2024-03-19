@@ -41,7 +41,7 @@ public class AlarmSetter : MonoBehaviour
 		}
 	}
 
-	public void SetNewAlarmNotification(string notificationTitle, string notificationText, int secondsAppearing)
+	public void SetNewAlarmNotification(string notificationTitle, string notificationText, DateTime secondsAppearing)
 	{
 		var notification = new Notification()
 		{
@@ -49,13 +49,12 @@ public class AlarmSetter : MonoBehaviour
 			Text = notificationText,
 		};
 
-		var dateTime = DateTime.Now.AddSeconds(secondsAppearing);
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime));
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime.AddSeconds(6)));
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime.AddSeconds(12)));
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime.AddSeconds(18)));
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime.AddSeconds(24)));
-		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(dateTime.AddSeconds(31)));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing.AddSeconds(6)));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing.AddSeconds(12)));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing.AddSeconds(18)));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing.AddSeconds(24)));
+		NotificationCenter.ScheduleNotification(notification, new NotificationDateTimeSchedule(secondsAppearing.AddSeconds(31)));
 	}
 
 	public void ClearAllAlarmNotifications()

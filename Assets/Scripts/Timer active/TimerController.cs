@@ -9,8 +9,8 @@ public class TimerController : MonoBehaviour
 {
 	public int seconds;
 
-	private int _maxSettedSeconds;
-	private int _currentRemainedSeconds;
+	private TimeSpan _maxSettedSeconds;
+	private TimeSpan _currentRemainedSeconds;
 	
 	private TimerView _timerView;
 	private CancellationTokenSource _timerToken;
@@ -23,23 +23,22 @@ public class TimerController : MonoBehaviour
 		await UniTask.WaitUntil(() => AlarmSetter.Instance.IsInit);
 
 		TimeSpan time = TimeSpan.FromSeconds(seconds);
-		AlarmSetter.Instance.SetNewAlarmNotification("Stop!", "Activity stop!", (int)time.TotalSeconds);
 		SetTimeOfTimer(time);
 		StartTimer();
 	}
 
 	private async UniTask StartTimerCompletion(CancellationToken ct)
 	{
-		_timerView.ShowRemainedTime(_currentRemainedSeconds, _maxSettedSeconds);
+		_timerView.ShowRemainedTime((int)_currentRemainedSeconds.TotalSeconds, (int)_maxSettedSeconds.TotalSeconds);
 
 		while (true)
 		{
 			await UniTask.Delay(1000, cancellationToken: ct);
 
-			_currentRemainedSeconds--;
-			_timerView.ShowRemainedTime(_currentRemainedSeconds, _maxSettedSeconds);
+			_currentRemainedSeconds.Subtract(TimeSpan.FromSeconds(1));
+			_timerView.ShowRemainedTime((int)_currentRemainedSeconds.TotalSeconds, (int)_maxSettedSeconds.TotalSeconds);
 
-			if (_currentRemainedSeconds <= 0)
+			if ((int)_currentRemainedSeconds.TotalSeconds <= 0)
 			{
 				OnTimerCompleted();
 				break;
@@ -61,7 +60,7 @@ public class TimerController : MonoBehaviour
 	public void StartTimer()
 	{
 		_timerToken = new CancellationTokenSource();
-		if (_currentRemainedSeconds > 0)
+		if (_currentRemainedSeconds.TotalSeconds > 0)
 		{
 			StartTimerCompletion(_timerToken.Token);
 		}
@@ -74,7 +73,7 @@ public class TimerController : MonoBehaviour
 
 	public void SetTimeOfTimer(TimeSpan settedTime)
 	{
-		_maxSettedSeconds = (int)settedTime.TotalSeconds;
+		_maxSettedSeconds = settedTime;
 		_currentRemainedSeconds = _maxSettedSeconds;
 	}
 }
