@@ -7,24 +7,21 @@ using UnityEngine;
 
 public class TimerController : MonoBehaviour
 {
-	public int seconds;
-
 	private TimeSpan _maxSettedSeconds;
 	private TimeSpan _currentRemainedSeconds;
-	
+
+	private bool _isTimerPaused;
 	private TimerView _timerView;
 	private CancellationTokenSource _timerToken;
 
-	private async UniTask Start()
+	public static Action OnTimerPaused;
+	public static Action OnTimerResumed;
+	public static Action OnTimerCompleted;
+
+	private void Awake()
 	{
 		_timerView = GetComponent<TimerView>();
 		Application.runInBackground = true;
-
-		await UniTask.WaitUntil(() => AlarmSetter.Instance.IsInit);
-
-		TimeSpan time = TimeSpan.FromSeconds(seconds);
-		SetTimeOfTimer(time);
-		StartTimer();
 	}
 
 	private async UniTask StartTimerCompletion(CancellationToken ct)
@@ -35,12 +32,12 @@ public class TimerController : MonoBehaviour
 		{
 			await UniTask.Delay(1000, cancellationToken: ct);
 
-			_currentRemainedSeconds.Subtract(TimeSpan.FromSeconds(1));
+			_currentRemainedSeconds = _currentRemainedSeconds.Subtract(TimeSpan.FromSeconds(1));
 			_timerView.ShowRemainedTime((int)_currentRemainedSeconds.TotalSeconds, (int)_maxSettedSeconds.TotalSeconds);
 
 			if ((int)_currentRemainedSeconds.TotalSeconds <= 0)
 			{
-				OnTimerCompleted();
+				CompleteTimer();
 				break;
 			}
 
@@ -51,10 +48,10 @@ public class TimerController : MonoBehaviour
 		}
 	}
 
-	private void OnTimerCompleted()
+	private void CompleteTimer()
 	{
 		GetComponent<AudioSource>().Play();
-		Debug.Log("Completed!");
+		OnTimerCompleted?.Invoke();
 	}
 
 	public void StartTimer()
@@ -63,12 +60,20 @@ public class TimerController : MonoBehaviour
 		if (_currentRemainedSeconds.TotalSeconds > 0)
 		{
 			StartTimerCompletion(_timerToken.Token);
+
+			if(_isTimerPaused)
+			{
+				OnTimerResumed?.Invoke();
+				_isTimerPaused = false;
+			}
 		}
 	}
 
 	public void PauseTimer()
 	{
+		_isTimerPaused = true;
 		_timerToken.Cancel();
+		OnTimerPaused?.Invoke();
 	}
 
 	public void SetTimeOfTimer(TimeSpan settedTime)

@@ -16,6 +16,16 @@ public class CompletingActivity
 		this.notificationTime = DateTime.Now.AddSeconds(this.overallTimeForActivity.TotalSeconds);
 	}
 
+	public void SetTimeOfCompletion(TimeSpan time)
+	{
+		overallTimeForActivity = time;
+	}
+
+	public TimeSpan GetRemainedTimeForCompletion()
+	{
+		return overallTimeForActivity;
+	}
+
 	public DateTime GetDateTimeForNotification()
 	{
 		return this.notificationTime;

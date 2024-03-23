@@ -9,22 +9,22 @@ using UnityEngine.Events;
 public class ExtendedToggle : MonoBehaviour
 {
 	[Header("Properties")]
-    [SerializeField] private bool isOn = false;
-    [SerializeField] private float fadePeriodSeconds = 0.2f;
+	[SerializeField] private bool isOn = false;
+	[SerializeField] private float fadePeriodSeconds = 0.2f;
 	[Space]
 	[Header("Components")]
 	[SerializeField] private CanvasGroup turnedOnCG;
-    [SerializeField] private CanvasGroup turnedOffCG;
+	[SerializeField] private CanvasGroup turnedOffCG;
 	[Space]
 	[Header("Events")]
-	[SerializeField] private UnityEvent onTurnedOn;
-	[SerializeField] private UnityEvent onTurnedOff;
-	[SerializeField] private UnityEvent<bool> onSwitchedToggle;
+	public UnityEvent OnTurnedOn;
+	public UnityEvent OnTurnedOff;
+	public UnityEvent<bool> OnSwitchedToggle;
 
 #if UNITY_EDITOR
 	private void Update()
 	{
-		if(!Application.isPlaying)
+		if (!Application.isPlaying)
 		{
 			UpdateGraphicOfToggle();
 		}
@@ -32,20 +32,21 @@ public class ExtendedToggle : MonoBehaviour
 #endif
 
 	private void UpdateGraphicOfToggle()
-    {
+	{
 		if (turnedOnCG == null || turnedOffCG == null)
 			return;
 
 		if (isOn)
 		{
-            if(!Application.isPlaying)
-            {
+			if (!Application.isPlaying)
+			{
 				turnedOnCG.alpha = 1f;
 				turnedOffCG.alpha = 0f;
-			} else
-            {
-                turnedOnCG.DOFade(1, fadePeriodSeconds);
-                turnedOffCG.DOFade(0, fadePeriodSeconds);
+			}
+			else
+			{
+				turnedOnCG.DOFade(1, fadePeriodSeconds);
+				turnedOffCG.DOFade(0, fadePeriodSeconds);
 			}
 		}
 		else
@@ -65,15 +66,16 @@ public class ExtendedToggle : MonoBehaviour
 
 	private void InvokeEvents()
 	{
-		if(isOn)
+		if (isOn)
 		{
-			onTurnedOn?.Invoke();
-		} else
+			OnTurnedOn?.Invoke();
+		}
+		else
 		{
-			onTurnedOff?.Invoke();
+			OnTurnedOff?.Invoke();
 		}
 
-		onSwitchedToggle?.Invoke(isOn);
+		OnSwitchedToggle?.Invoke(isOn);
 	}
 
 	public void SetToggleValue(bool value)
