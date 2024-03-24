@@ -1,4 +1,5 @@
 using Michsky.MUIP;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,11 @@ using UnityEngine.UI;
 
 public class MainScreenController : MonoBehaviour
 {
-    [SerializeField] public CircularSlider circularSlider;
+	[SerializeField] private string chosenActivity;
+	[Space]
+	[SerializeField] private ActivityController activityController;
+	[Space]
+    [SerializeField] private CircularSlider circularSlider;
 	[SerializeField] private Toggle regularMode;
 	[SerializeField] private Toggle pomodoroMode;
     [SerializeField] private ButtonManager startButton;
@@ -18,8 +23,8 @@ public class MainScreenController : MonoBehaviour
 
 	private void StartActivity()
 	{
-		int currentMinutesSetted = circularSlider.GetCurrentSettedMinutes();
-		if(currentMinutesSetted > 0)
+		TimeSpan currentTimeSetted = circularSlider.GetCurrentSettedTime();
+		if(currentTimeSetted.TotalMinutes > 0)
 		{
 			if(regularMode.isOn)
 			{
@@ -27,7 +32,8 @@ public class MainScreenController : MonoBehaviour
 			} 
 			else if(pomodoroMode.isOn)
 			{
-				Debug.Log("Pomodoro mode");
+				ScreenManager.Singleton.ShowTimerCompletingActivityScreen();
+				activityController.InitAndStartCompletingByPomodoroMode(chosenActivity, currentTimeSetted);
 			} else
 			{
 				Debug.LogWarning("Error with setupping toggles!");

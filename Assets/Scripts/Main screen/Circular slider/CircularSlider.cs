@@ -1,4 +1,5 @@
 using Michsky.MUIP;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -27,8 +28,8 @@ public class CircularSlider : MonoBehaviour
 		sliderValue.text = _currentMinutesSetted.ToString();
 	}
 
-	public int GetCurrentSettedMinutes()
+	public TimeSpan GetCurrentSettedTime()
 	{
-		return _currentMinutesSetted;
+		return TimeSpan.FromMinutes(_currentMinutesSetted);
 	}
 }

@@ -8,18 +8,18 @@ public class ActivityController : MonoBehaviour
 	private int _currentCompletingActivityIndex = 0;
 	private bool _isChosenPomodoroMode;
 
+	private ActivityView _activityView;
 	private TimerController _timerController;
 	private List<CompletingActivity> _completingActivities = new List<CompletingActivity>();
 	
 	private TimeSpan _timeActivityInPomodoroMode = TimeSpan.FromMinutes(1);
-	private TimeSpan _timeBreakInPomodoroMode = TimeSpan.FromMinutes(2);
+	private TimeSpan _timeBreakInPomodoroMode = TimeSpan.FromSeconds(10);
 
 	private void Start()
 	{
 		_timerController = GetComponent<TimerController>();
+		_activityView = GetComponent<ActivityView>();
 		TimerController.OnTimerCompleted += OnTimerCompletedActivity;
-
-		InitAndStartCompletingByPomodoroMode("Programming", TimeSpan.FromMinutes(2), TimeSpan.MinValue);
 	}
 
 	private void OnDestroy()
@@ -27,37 +27,42 @@ public class ActivityController : MonoBehaviour
 		TimerController.OnTimerCompleted -= OnTimerCompletedActivity;
 	}
 
-	public void InitAndStartCompletingByPomodoroMode(string activityName, TimeSpan timeOfCompleting, TimeSpan breakTime)
+	public void InitAndStartCompletingByPomodoroMode(string activityName, TimeSpan timeOfCompleting)
 	{
 		_isChosenPomodoroMode = true;
-		InitCompletingByPomodoroMode(activityName, timeOfCompleting, breakTime);
 
-		SetTimeOnTimerAndLauchItForActivity();
-	}
-
-	public void InitCompletingByPomodoroMode(string activityName, TimeSpan timeOfCompleting, TimeSpan breakTime)
-	{
 		TimeSpan remainedAllocationTimeOfCompletion = timeOfCompleting;
-		while(remainedAllocationTimeOfCompletion.TotalMinutes < _timeActivityInPomodoroMode.TotalMinutes)
+		while (remainedAllocationTimeOfCompletion.TotalMinutes > _timeActivityInPomodoroMode.TotalMinutes)
 		{
-			CompletingActivity completingActivity = new CompletingActivity();
-			completingActivity.SetActivityData(activityName, _timeActivityInPomodoroMode);
-			_completingActivities.Add(completingActivity);
+			InsertIntoListOfActivitiesCompletingActitvity(activityName, _timeActivityInPomodoroMode);
+			InsertIntoListOfActivitiesCompletingActitvity("Break", _timeBreakInPomodoroMode);
 
 			remainedAllocationTimeOfCompletion = remainedAllocationTimeOfCompletion.Subtract(_timeActivityInPomodoroMode);
-			CompletingActivity breakActivity = new CompletingActivity();
-			completingActivity.SetActivityData("Break", _timeBreakInPomodoroMode);
-			_completingActivities.Add(breakActivity);
 		}
 
-		if(remainedAllocationTimeOfCompletion.TotalMinutes > 0)
+		if (remainedAllocationTimeOfCompletion.TotalMinutes > 0)
 		{
-			CompletingActivity completingActivity = new CompletingActivity();
-			completingActivity.SetActivityData(activityName, remainedAllocationTimeOfCompletion);
-			_completingActivities.Add(completingActivity);
+			InsertIntoListOfActivitiesCompletingActitvity(activityName, remainedAllocationTimeOfCompletion);
 		}
 
 		_currentCompletingActivityIndex = 0;
+		SetTimeOnTimerAndLauchItForActivity();
+	}
+
+	private void SetTimeOnTimerAndLauchItForActivity()
+	{
+		TimeSpan currentTime = _completingActivities[_currentCompletingActivityIndex].GetRemainedTimeForCompletion();
+		string currentActivity = _completingActivities[_currentCompletingActivityIndex].GetNameOfActivity();
+		_activityView.ShowOnTimerCurrentInProgressActivity(currentActivity);
+		_timerController.SetTimeOfTimer(currentTime);
+		_timerController.StartTimer();
+	}
+
+	private void InsertIntoListOfActivitiesCompletingActitvity(string nameOfActivity, TimeSpan timeOnActivity)
+	{
+		CompletingActivity completingActivity = new CompletingActivity();
+		completingActivity.SetActivityData(nameOfActivity, timeOnActivity);
+		_completingActivities.Add(completingActivity);
 	}
 
 	private void OnTimerCompletedActivity()
@@ -75,15 +80,8 @@ public class ActivityController : MonoBehaviour
 		}
 	}
 
-	private void SetTimeOnTimerAndLauchItForActivity()
-	{
-		TimeSpan currentTime = _completingActivities[_currentCompletingActivityIndex].GetRemainedTimeForCompletion();
-		_timerController.SetTimeOfTimer(currentTime);
-		_timerController.StartTimer();
-	}
-
 	private bool IsLastCompletingActivity()
 	{
-		return _currentCompletingActivityIndex >= _completingActivities.Count;
+		return _currentCompletingActivityIndex >= _completingActivities.Count - 1;
 	}
 }
