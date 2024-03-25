@@ -52,10 +52,10 @@ public class ActivityController : MonoBehaviour
 	private void SetTimeOnTimerAndLauchItForActivity()
 	{
 		TimeSpan currentTime = _completingActivities[_currentCompletingActivityIndex].GetRemainedTimeForCompletion();
-		string currentActivity = _completingActivities[_currentCompletingActivityIndex].GetNameOfActivity();
-		_activityView.ShowOnTimerCurrentInProgressActivity(currentActivity);
+		string currentActivityName = _completingActivities[_currentCompletingActivityIndex].GetNameOfActivity();
+		_activityView.ShowOnTimerCurrentInProgressActivity(currentActivityName);
 		_timerController.SetTimeOfTimer(currentTime);
-		_timerController.StartTimer();
+		_timerController.StartTimer(currentActivityName, $"Current activity: {currentActivityName}");
 	}
 
 	private void InsertIntoListOfActivitiesCompletingActitvity(string nameOfActivity, TimeSpan timeOnActivity)

@@ -7,8 +7,8 @@ using UnityEngine;
 
 public class TimerController : MonoBehaviour
 {
-	private TimeSpan _maxSettedSeconds;
-	private TimeSpan _currentRemainedSeconds;
+	public TimeSpan _maxSettedSeconds;
+	public TimeSpan _currentRemainedSeconds;
 
 	private bool _isTimerPaused;
 	private TimerView _timerView;
@@ -54,13 +54,16 @@ public class TimerController : MonoBehaviour
 		OnTimerCompleted?.Invoke();
 	}
 
-	public void StartTimer()
+	public void StartTimer(string notificationTitle, string notificationDescription)
 	{
 		_timerToken = new CancellationTokenSource();
 		if (_currentRemainedSeconds.TotalSeconds > 0)
 		{
+			DateTime settingTimeForNotificationAlarm = DateTime.Now.AddSeconds(_currentRemainedSeconds.TotalSeconds);
+			AlarmSetter.Instance.SetNewAlarmNotification(notificationTitle, notificationDescription, settingTimeForNotificationAlarm);
+			
 			StartTimerCompletion(_timerToken.Token);
-
+			
 			if(_isTimerPaused)
 			{
 				OnTimerResumed?.Invoke();
@@ -74,6 +77,7 @@ public class TimerController : MonoBehaviour
 		_isTimerPaused = true;
 		_timerToken.Cancel();
 		OnTimerPaused?.Invoke();
+		AlarmSetter.Instance.ClearAllAlarmNotifications();
 	}
 
 	public void SetTimeOfTimer(TimeSpan settedTime)
