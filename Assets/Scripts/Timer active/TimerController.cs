@@ -10,6 +10,7 @@ public class TimerController : MonoBehaviour
 	public TimeSpan _maxSettedSeconds;
 	public TimeSpan _currentRemainedSeconds;
 
+	private bool _isTimerCompleting;
 	private bool _isTimerPaused;
 	private TimerView _timerView;
 	private CancellationTokenSource _timerToken;
@@ -59,9 +60,7 @@ public class TimerController : MonoBehaviour
 		_timerToken = new CancellationTokenSource();
 		if (_currentRemainedSeconds.TotalSeconds > 0)
 		{
-			DateTime settingTimeForNotificationAlarm = DateTime.Now.AddSeconds(_currentRemainedSeconds.TotalSeconds);
-			AlarmSetter.Instance.SetNewAlarmNotification(notificationTitle, notificationDescription, settingTimeForNotificationAlarm);
-			
+			_isTimerCompleting = true;
 			StartTimerCompletion(_timerToken.Token);
 			
 			if(_isTimerPaused)
@@ -84,5 +83,10 @@ public class TimerController : MonoBehaviour
 	{
 		_maxSettedSeconds = settedTime;
 		_currentRemainedSeconds = _maxSettedSeconds;
+	}
+
+	public TimeSpan GetRemainedTimeOnTimer()
+	{
+		return _currentRemainedSeconds;
 	}
 }

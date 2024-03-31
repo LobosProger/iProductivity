@@ -6,6 +6,7 @@ using UnityEngine;
 public class ActivityController : MonoBehaviour
 {
 	private int _currentCompletingActivityIndex = 0;
+	private bool _isCapturedNotificationAlarms;
 	private bool _isChosenPomodoroMode;
 
 	private ActivityView _activityView;
@@ -83,5 +84,27 @@ public class ActivityController : MonoBehaviour
 	private bool IsLastCompletingActivity()
 	{
 		return _currentCompletingActivityIndex >= _completingActivities.Count - 1;
+	}
+
+	private void OnApplicationFocus(bool focus)
+	{
+		if(!focus && !_isCapturedNotificationAlarms)
+		{
+
+		}
+	}
+
+	private void OnApplicationPause(bool pause)
+	{
+		if(pause && !_isCapturedNotificationAlarms)
+		{
+
+		}
+	}
+
+	private void CaptureBackgroundNotificationAlarms()
+	{
+		_isCapturedNotificationAlarms = true;
+
 	}
 }
