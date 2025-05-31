@@ -4478,7 +4478,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c47d706ab36e1c4194ae4d29abfb485, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minutesInterval: 20
+  minutesSteps: 20
   sliderValueInMinutes: {fileID: 1787376881}
   fillAmountLineOfSlider: {fileID: 411078493}
   _radialSlider: {fileID: 1661350225}
@@ -4606,7 +4606,7 @@ MonoBehaviour:
   Loops: 1
   ClampOutput01: 1
   SnapToPosition: 0
-  SnapStepsPerLoop: 6
+  SnapStepsPerLoop: 8
   ParentTouchMask: {fileID: 0}
   MaskBackground: {r: 0, g: 0, b: 0, a: 0}
   OnValueChanged:
