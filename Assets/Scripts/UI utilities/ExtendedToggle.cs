@@ -54,4 +54,9 @@ public class ExtendedToggle : MonoBehaviour
     {
         return _toggle.isOn;
     }
+
+    public void SetValueOfToggle(bool value)
+    {
+        _toggle.isOn = value;
+    }
 }

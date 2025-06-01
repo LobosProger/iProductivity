@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,37 +17,54 @@ public class SessionManager : MonoBehaviour
     [Space]
     [SerializeField] private TimerCircularSlider _timerCircularSlider;
     [SerializeField] private TimerController _timerController;
+    [SerializeField] private TMP_Text _currentActivityNameText;
     [Space] 
+    [Header("Main timer window components")]
+    [SerializeField] private Button _selectedActivityButton;
+    [SerializeField] private TMP_Text _selectedActivityText;
     [SerializeField] private Button _startActivityButton;
 
+    private string _chosenActivityName;
+    
     private ActivityType _currentActivityType = ActivityType.Work;
     private int _totalSessionMinutes;
     private int _completedCycles;
     private int _totalCycles;
 
-    public event Action<ActivityType> onActivityTypeChanged;
-    public event Action<int, int> onCycleProgressChanged; // current cycle, total cycles
-
     private void Start()
     {
+        ActivitiesSetter.onSelectedActivity += SelectActivityAndRefreshView;
+        
         _timerController.onSessionOfTimerStarted += CaptureAtServerLaunchedActivity;
         _timerController.onSessionOfTimerEnded += CaptureAtServerCompletedActivityAndSwitchToNext;
-        
         _timerController.onTimerStopped += OnTimerStopped;
         _timerController.onTimerPaused += CaptureAtServerCompletedActivity;
         _timerController.onTimerResumed += CaptureAtServerLaunchedActivity;
         
         _startActivityButton.onClick.AddListener(StartSessionActivity);
+        _selectedActivityButton.onClick.AddListener(ReselectActivityInActivitiesWindow);
     }
 
     private void OnDestroy()
     {
+        ActivitiesSetter.onSelectedActivity -= SelectActivityAndRefreshView;
+        
         _timerController.onSessionOfTimerStarted -= CaptureAtServerLaunchedActivity;
         _timerController.onSessionOfTimerEnded -= CaptureAtServerCompletedActivityAndSwitchToNext;
-        
         _timerController.onTimerStopped -= OnTimerStopped;
         _timerController.onTimerPaused -= CaptureAtServerCompletedActivity;
         _timerController.onTimerResumed -= CaptureAtServerLaunchedActivity;
+    }
+
+    private void ReselectActivityInActivitiesWindow()
+    {
+        TopDownPanel.instance.ShowActivitiesWindow();
+    }
+
+    private void SelectActivityAndRefreshView(string activityName)
+    {
+        _chosenActivityName = activityName;
+        _selectedActivityText.text = activityName;
     }
     
     private void CaptureAtServerLaunchedActivity()
@@ -134,9 +152,7 @@ public class SessionManager : MonoBehaviour
         _timerController.LaunchSessionOfTimer();
         _pomodoroSessionWindow.ClosePreviousAndShowThisWindow();
         
-        onActivityTypeChanged?.Invoke(_currentActivityType);
-        onCycleProgressChanged?.Invoke(_completedCycles + 1, _totalCycles);
-        
+        _currentActivityNameText.text = _currentActivityType == ActivityType.Work ? _chosenActivityName : "Rest";
         Debug.Log($"Started {_currentActivityType} activity for {activityDurationMinutes} minutes");
     }
     

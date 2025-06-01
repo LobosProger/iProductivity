@@ -49,6 +49,7 @@ public class ActivitiesSetter : MonoBehaviour
 
     private void SelectActivity(string activityName)
     {
+        Debug.Log($"Selected activity: {activityName}");
         onSelectedActivity?.Invoke(activityName);
     }
 
