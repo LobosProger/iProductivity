@@ -9,4 +9,5 @@ public class AuthorizationController : MonoBehaviour
     [Space]
     [SerializeField] private Button _loginButton;
     [SerializeField] private Button _registerButton;
+    [SerializeField] private TMP_Text _authStatusText;
 }
