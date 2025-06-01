@@ -14,13 +14,11 @@ public class TimerController : MonoBehaviour
     [SerializeField] private Button _stopTimerButton;
     [SerializeField] private ExtendedToggle _pauseAndResumeTimerToggle;
     
-    public static event Action onSessionOfTimerStarted;
-    public static event Action onSessionOfTimerEnded;
-    
-    public static event Action onTimerResumed;
-    public static event Action onTimerPaused;
-    public static event Action onTimerStopped;
+    public event Action onSessionOfTimerStarted;
+    public event Action onSessionOfTimerEnded;
+    public event Action onTimerStopped;
 
+    private bool _isPauseButtonPressed;
     private TimeSpan _timeOfSession;
     private CancellationTokenSource _timerToken;
 
@@ -43,12 +41,18 @@ public class TimerController : MonoBehaviour
         if (!IsRemainedTimeAtTheTimer())
             return;
         
-        _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
-        
         _timeOfSession = TimeSpan.Zero;
         UpdateActualViewAtTheTimer();
+        _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
         
         _timerToken?.Cancel();
+
+        // If already clicked on the pause button, we don't need to second time invoke onSessionOfTimerEnded action, on which subscribed SessionManager
+        // because it's need for handle logic of start and end of the session activity (for example, programming, reading, etc.) and it will be sent
+        // into backend as event
+        if (!_isPauseButtonPressed)
+            onSessionOfTimerEnded?.Invoke();
+        
         onTimerStopped?.Invoke();
     }
 
@@ -70,12 +74,11 @@ public class TimerController : MonoBehaviour
         
         if (pauseTimer)
         {
-            onTimerPaused?.Invoke();
+            onSessionOfTimerEnded?.Invoke();
             _timerToken?.Cancel();
         }
         else
         {
-            onTimerResumed?.Invoke();
             LaunchSessionOfTimer();
         }
     }
@@ -86,6 +89,7 @@ public class TimerController : MonoBehaviour
         
         _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
         
+        _isPauseButtonPressed = false;
         _timerToken = new();
         LaunchTimerAsync().Forget();
     }

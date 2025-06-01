@@ -13,8 +13,6 @@ public class TimerCircularSlider : MonoBehaviour
 	[SerializeField] private TMP_Text sliderValueInMinutes;
 	[SerializeField] private Image fillAmountLineOfSlider;
     [SerializeField] private UI_Knob _radialSlider;
-
-    public static event Action<int> onSetTimerOnMinutes; 
 	
     private int _currentMinutesSet = 0;
 
@@ -23,7 +21,11 @@ public class TimerCircularSlider : MonoBehaviour
 		_radialSlider.OnValueChanged.AddListener(OnSlidedHandlerOnSlider);
 
 		ProcessSliderValuesAndShowToView();
-		onSetTimerOnMinutes?.Invoke(_currentMinutesSet);
+	}
+	
+	private void OnSlidedHandlerOnSlider(float value)
+	{
+		ProcessSliderValuesAndShowToView();
 	}
 
 	private void ProcessSliderValuesAndShowToView()
@@ -35,9 +37,8 @@ public class TimerCircularSlider : MonoBehaviour
 		sliderValueInMinutes.text = _currentMinutesSet.ToString();
 	}
 
-	private void OnSlidedHandlerOnSlider(float value)
+	public int GetCurrentMinutesSet()
 	{
-		ProcessSliderValuesAndShowToView();
-		onSetTimerOnMinutes?.Invoke(_currentMinutesSet);
+		return _currentMinutesSet;
 	}
 }
