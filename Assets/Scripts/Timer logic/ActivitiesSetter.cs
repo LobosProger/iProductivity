@@ -12,7 +12,8 @@ public class ActivitiesSetter : MonoBehaviour
 
     public static event Action<string> onSelectedActivity; 
 
-    private Dictionary<string, ActivityBoxView> _activities = new();
+    private Dictionary<string, ActivityBoxView> _activities = new(); // Key: activity name
+    private Dictionary<string, ActivityBoxView> _activitiesByHash = new(); // Key: activity hash
     
     private void Start()
     {
@@ -47,19 +48,26 @@ public class ActivitiesSetter : MonoBehaviour
     {
         if (_activities.ContainsKey(activityName))
         {
-            Debug.LogWarning($"Activity with name '{activityName}' already exists");
+            Debug.LogWarning($"Activity with name '{activityName}' already exists in UI");
             return;
         }
+        
+        Debug.Log($"Creating new activity: {activityName}");
         
         var success = await ActivityManager.instance.CreateActivityAsync(activityName);
         if (!success)
         {
-            Debug.LogError($"Failed to create activity: {activityName}");
+            Debug.LogError($"Failed to create activity on server: {activityName}");
+        }
+        else
+        {
+            Debug.Log($"Successfully created activity on server: {activityName}");
         }
     }
 
     private void OnActivityCreatedOnServer(ActivityResponse activity)
     {
+        Debug.Log($"Activity created on server, adding to UI: {activity.name} (Hash: {activity.hash})");
         CreateActivityBoxInUI(activity);
     }
 
@@ -74,20 +82,24 @@ public class ActivitiesSetter : MonoBehaviour
         creatingNewActivityBlock.gameObject.SetActive(true);
         
         _activities.Add(activity.name, creatingNewActivityBlock);
+        _activitiesByHash.Add(activity.hash, creatingNewActivityBlock);
     }
 
     private void LoadActivitiesFromServer(List<ActivityResponse> activities)
     {
+        Debug.Log($"Loading {activities.Count} activities from server");
+        
         // Clear existing activities
         ClearAllActivities();
         
         // Create UI for each activity from server
         foreach (var activity in activities)
         {
+            Debug.Log($"Loading activity: {activity.name} (Hash: {activity.hash})");
             CreateActivityBoxInUI(activity);
         }
         
-        Debug.Log($"Loaded {activities.Count} activities from server");
+        Debug.Log($"Successfully loaded {activities.Count} activities from server");
     }
 
     private void ClearAllActivities()
@@ -100,6 +112,7 @@ public class ActivitiesSetter : MonoBehaviour
             }
         }
         _activities.Clear();
+        _activitiesByHash.Clear();
     }
 
     private void SelectActivity(string activityName)
@@ -110,37 +123,49 @@ public class ActivitiesSetter : MonoBehaviour
 
     private async void DeleteActivityFromServer(string activityName)
     {
+        Debug.Log($"Deleting activity: {activityName}");
+        
         // Find the activity hash by name
         var activity = ActivityManager.instance.FindActivityByName(activityName);
         if (activity == null)
         {
-            Debug.LogError($"Activity not found: {activityName}");
+            Debug.LogError($"Activity not found in ActivityManager: {activityName}");
             return;
         }
 
+        Debug.Log($"Found activity to delete: Name={activity.name}, Hash={activity.hash}");
+        
         var success = await ActivityManager.instance.DeleteActivityAsync(activity.hash);
         if (!success)
         {
-            Debug.LogError($"Failed to delete activity: {activityName}");
+            Debug.LogError($"Failed to delete activity from server: {activityName}");
+        }
+        else
+        {
+            Debug.Log($"Successfully deleted activity from server: {activityName}");
         }
     }
 
     private void OnActivityDeletedFromServer(string activityHash)
     {
-        // Find and remove activity from UI by hash
-        var activityToRemove = _activities.FirstOrDefault(kvp => 
+        // Find activity by hash directly
+        if (_activitiesByHash.ContainsKey(activityHash))
         {
-            var activity = ActivityManager.instance.FindActivityByName(kvp.Key);
-            return activity?.hash == activityHash;
-        });
-
-        if (!activityToRemove.Equals(default(KeyValuePair<string, ActivityBoxView>)))
+            var activityBoxView = _activitiesByHash[activityHash];
+            var activityName = activityBoxView.GetActivityName();
+            
+            // Remove from UI
+            Destroy(activityBoxView.gameObject);
+            
+            // Remove from both dictionaries
+            _activities.Remove(activityName);
+            _activitiesByHash.Remove(activityHash);
+            
+            Debug.Log($"Activity removed from UI: {activityName}");
+        }
+        else
         {
-            if (activityToRemove.Value != null)
-            {
-                Destroy(activityToRemove.Value.gameObject);
-            }
-            _activities.Remove(activityToRemove.Key);
+            Debug.LogWarning($"Activity with hash {activityHash} not found in UI");
         }
     }
 }
