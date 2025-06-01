@@ -19,32 +19,87 @@ public class ActivitiesSetter : MonoBehaviour
         // By default, disabling it
         _activityBoxViewTemplate.gameObject.SetActive(false);
 
-        _activityAdderView.onActivityAdded += AddNewActivity;
+        _activityAdderView.onActivityAdded += AddNewActivityToServer;
         ActivityBoxView.onSelectedActivity += SelectActivity;
-        ActivityBoxView.onDeleteActivity += DeleteActivity;
+        ActivityBoxView.onDeleteActivity += DeleteActivityFromServer;
+        
+        // Subscribe to activity manager events
+        ActivityManager.instance.onActivitiesLoaded += LoadActivitiesFromServer;
+        ActivityManager.instance.onActivityCreated += OnActivityCreatedOnServer;
+        ActivityManager.instance.onActivityDeleted += OnActivityDeletedFromServer;
     }
 
     private void OnDestroy()
     {
-        _activityAdderView.onActivityAdded -= AddNewActivity;
+        _activityAdderView.onActivityAdded -= AddNewActivityToServer;
         ActivityBoxView.onSelectedActivity -= SelectActivity;
-        ActivityBoxView.onDeleteActivity -= DeleteActivity;
+        ActivityBoxView.onDeleteActivity -= DeleteActivityFromServer;
+        
+        if (ActivityManager.instance != null)
+        {
+            ActivityManager.instance.onActivitiesLoaded -= LoadActivitiesFromServer;
+            ActivityManager.instance.onActivityCreated -= OnActivityCreatedOnServer;
+            ActivityManager.instance.onActivityDeleted -= OnActivityDeletedFromServer;
+        }
     }
 
-    private void AddNewActivity(string activityName)
+    private async void AddNewActivityToServer(string activityName)
     {
         if (_activities.ContainsKey(activityName))
+        {
+            Debug.LogWarning($"Activity with name '{activityName}' already exists");
             return;
+        }
         
+        var success = await ActivityManager.instance.CreateActivityAsync(activityName);
+        if (!success)
+        {
+            Debug.LogError($"Failed to create activity: {activityName}");
+        }
+    }
+
+    private void OnActivityCreatedOnServer(ActivityResponse activity)
+    {
+        CreateActivityBoxInUI(activity);
+    }
+
+    private void CreateActivityBoxInUI(ActivityResponse activity)
+    {
         var creatingNewActivityBlock = Instantiate(_activityBoxViewTemplate, _activityBoxesContainer);
-        creatingNewActivityBlock.InitActivityBox(activityName);
+        creatingNewActivityBlock.InitActivityBox(activity.name, activity.hash);
 
         // Make activity block topper than add activity block
         var reorderingSiblingIndex = creatingNewActivityBlock.transform.GetSiblingIndex() - 1;
         creatingNewActivityBlock.transform.SetSiblingIndex(reorderingSiblingIndex);
         creatingNewActivityBlock.gameObject.SetActive(true);
         
-        _activities.Add(activityName, creatingNewActivityBlock);
+        _activities.Add(activity.name, creatingNewActivityBlock);
+    }
+
+    private void LoadActivitiesFromServer(List<ActivityResponse> activities)
+    {
+        // Clear existing activities
+        ClearAllActivities();
+        
+        // Create UI for each activity from server
+        foreach (var activity in activities)
+        {
+            CreateActivityBoxInUI(activity);
+        }
+        
+        Debug.Log($"Loaded {activities.Count} activities from server");
+    }
+
+    private void ClearAllActivities()
+    {
+        foreach (var activityKvp in _activities)
+        {
+            if (activityKvp.Value != null && activityKvp.Value.gameObject != null)
+            {
+                Destroy(activityKvp.Value.gameObject);
+            }
+        }
+        _activities.Clear();
     }
 
     private void SelectActivity(string activityName)
@@ -53,14 +108,39 @@ public class ActivitiesSetter : MonoBehaviour
         onSelectedActivity?.Invoke(activityName);
     }
 
-    private void DeleteActivity(string activityName)
+    private async void DeleteActivityFromServer(string activityName)
     {
-        // // After deletion each time select first one activity
-        // var firstSelectedBlockKvp = _activities.FirstOrDefault();
-        // SelectActivity(firstSelectedBlockKvp.Key);
+        // Find the activity hash by name
+        var activity = ActivityManager.instance.FindActivityByName(activityName);
+        if (activity == null)
+        {
+            Debug.LogError($"Activity not found: {activityName}");
+            return;
+        }
 
-        var removingActivity = _activities[activityName];
-        Destroy(removingActivity.gameObject);
-        _activities.Remove(activityName);
+        var success = await ActivityManager.instance.DeleteActivityAsync(activity.hash);
+        if (!success)
+        {
+            Debug.LogError($"Failed to delete activity: {activityName}");
+        }
+    }
+
+    private void OnActivityDeletedFromServer(string activityHash)
+    {
+        // Find and remove activity from UI by hash
+        var activityToRemove = _activities.FirstOrDefault(kvp => 
+        {
+            var activity = ActivityManager.instance.FindActivityByName(kvp.Key);
+            return activity?.hash == activityHash;
+        });
+
+        if (!activityToRemove.Equals(default(KeyValuePair<string, ActivityBoxView>)))
+        {
+            if (activityToRemove.Value != null)
+            {
+                Destroy(activityToRemove.Value.gameObject);
+            }
+            _activities.Remove(activityToRemove.Key);
+        }
     }
 }

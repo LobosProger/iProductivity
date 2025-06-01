@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +26,8 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private Button _startActivityButton;
 
     private string _chosenActivityName;
+    private string _chosenActivityHash;
+    private string _currentServerActivityHash; // Track current activity on server
     
     private ActivityType _currentActivityType = ActivityType.Work;
     private int _totalSessionMinutes;
@@ -65,20 +68,35 @@ public class SessionManager : MonoBehaviour
     {
         _chosenActivityName = activityName;
         _selectedActivityText.text = activityName;
-    }
-    
-    private void CaptureAtServerLaunchedActivity()
-    {
-        var activityName = _currentActivityType == ActivityType.Work ? "Programming" : "Rest";
-        Debug.Log($"Session started: {activityName}");
-    }
-    
-    private void CaptureAtServerCompletedActivityAndSwitchToNext()
-    {
-        CaptureAtServerCompletedActivity();
         
-        // Here you can send analytics events to server
-        // AnalyticsManager.SendEvent("end_activity", activityName);
+        // Find the activity hash
+        var activity = ActivityManager.instance.FindActivityByName(activityName);
+        if (activity != null)
+        {
+            _chosenActivityHash = activity.hash;
+        }
+    }
+    
+    private async void CaptureAtServerLaunchedActivity()
+    {
+        if (_currentActivityType == ActivityType.Work && !string.IsNullOrEmpty(_chosenActivityHash))
+        {
+            var success = await ActivityManager.instance.StartActivityAsync(_chosenActivityHash);
+            if (success)
+            {
+                _currentServerActivityHash = _chosenActivityHash;
+                Debug.Log($"Session started on server: {_chosenActivityName}");
+            }
+        }
+        else if (_currentActivityType == ActivityType.Break)
+        {
+            Debug.Log("Break session started (not tracked on server)");
+        }
+    }
+    
+    private async void CaptureAtServerCompletedActivityAndSwitchToNext()
+    {
+        await CaptureAtServerCompletedActivityAsync();
         
         // Switch to next activity or complete session
         SwitchToNextActivityOrCompleteSession();
@@ -86,8 +104,21 @@ public class SessionManager : MonoBehaviour
 
     private void CaptureAtServerCompletedActivity()
     {
-        var activityName = _currentActivityType == ActivityType.Work ? "Programming" : "Rest";
-        Debug.Log($"Session ended: {activityName}");
+        CaptureAtServerCompletedActivityAsync().Forget();
+    }
+
+    private async UniTask CaptureAtServerCompletedActivityAsync()
+    {
+        if (_currentActivityType == ActivityType.Work && !string.IsNullOrEmpty(_currentServerActivityHash))
+        {
+            await ActivityManager.instance.EndActivityAsync(_currentServerActivityHash);
+            Debug.Log($"Session ended on server: {_chosenActivityName}");
+            _currentServerActivityHash = null;
+        }
+        else if (_currentActivityType == ActivityType.Break)
+        {
+            Debug.Log("Break session ended (not tracked on server)");
+        }
     }
     
     private void SwitchToNextActivityOrCompleteSession()
@@ -156,11 +187,11 @@ public class SessionManager : MonoBehaviour
         Debug.Log($"Started {_currentActivityType} activity for {activityDurationMinutes} minutes");
     }
     
-    private void OnTimerStopped()
+    private async void OnTimerStopped()
     {
         Debug.Log("Timer stopped by user");
 
-        CaptureAtServerCompletedActivity();
+        await CaptureAtServerCompletedActivityAsync();
         ResetActivitiesStats();
         CloseTimerWindowAndBackToTheMainMenu();
     }
@@ -171,10 +202,17 @@ public class SessionManager : MonoBehaviour
         _currentActivityType = ActivityType.Work;
         _completedCycles = 0;
         _totalCycles = 0;
+        _currentServerActivityHash = null;
     }
 
     private void StartSessionActivity()
     {
+        if (string.IsNullOrEmpty(_chosenActivityName))
+        {
+            Debug.LogWarning("Please select an activity first");
+            return;
+        }
+        
         _totalSessionMinutes = _timerCircularSlider.GetCurrentMinutesSet();
         
         if (_totalSessionMinutes <= 0)
@@ -190,6 +228,7 @@ public class SessionManager : MonoBehaviour
         
         Debug.Log($"Starting session: {_totalSessionMinutes} minutes, {_totalCycles} cycles");
         
+        TopDownPanel.instance.HidePanel();
         StartCurrentActivity();
     }
 
@@ -205,6 +244,7 @@ public class SessionManager : MonoBehaviour
 
     private void CloseTimerWindowAndBackToTheMainMenu()
     {
+        TopDownPanel.instance.ShowPanel();
         _timerWindow.ClosePreviousAndShowThisWindow();
     }
 }

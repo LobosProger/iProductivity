@@ -24,11 +24,14 @@ public class TimerController : MonoBehaviour
     private TimeSpan _currentTimeOfSession;
     private TimeSpan _initiallySetTimeOfSession;
     private CancellationTokenSource _timerToken;
+    private AudioSource _beepSound;
 
     private const float k_timerDurationRefreshInSeconds = 1;
 
     private void Start()
     {
+        _beepSound = GetComponent<AudioSource>();
+        
         _stopTimerButton.onClick.AddListener(StopTimer);
         _pauseAndResumeTimerToggle.onSwitchedToggle.AddListener(SwitchTimerState);
     }
@@ -106,6 +109,7 @@ public class TimerController : MonoBehaviour
             var isSessionOfTimerCompleted = _currentTimeOfSession.TotalSeconds <= 0;
             if (isSessionOfTimerCompleted)
             {
+                _beepSound.Play();
                 onSessionOfTimerEnded?.Invoke();
                 break;
             }

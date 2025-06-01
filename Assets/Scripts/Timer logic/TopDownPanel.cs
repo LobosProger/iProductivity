@@ -9,13 +9,30 @@ public class TopDownPanel : MonoBehaviour
     
     public static TopDownPanel instance { get; private set; }
     
+    private CanvasGroup _canvasGroup;
+    
     private void Awake()
     {
         instance = this;
+
+        _canvasGroup = GetComponent<CanvasGroup>();
+        HidePanel();
     }
 
     public void ShowActivitiesWindow()
     {
         _activitiesToggle.SetValueOfToggle(true);
+    }
+
+    public void ShowPanel()
+    {
+        _canvasGroup.alpha = 1;
+        _canvasGroup.blocksRaycasts = true;
+    }
+    
+    public void HidePanel()
+    {
+        _canvasGroup.alpha = 0;
+        _canvasGroup.blocksRaycasts = false;
     }
 }

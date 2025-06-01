@@ -13,6 +13,7 @@ public class ActivityBoxView : MonoBehaviour
     public static event Action<string> onDeleteActivity; 
     
     private string _activityName;
+    private string _activityHash;
     
     private void Start()
     {
@@ -33,14 +34,25 @@ public class ActivityBoxView : MonoBehaviour
         onDeleteActivity?.Invoke(_activityName);
     }
 
-    public void InitActivityBox(string activityName)
+    public void InitActivityBox(string activityName, string activityHash = null)
     {
         _activityName = activityName;
+        _activityHash = activityHash;
         _activityText.text = _activityName;
     }
 
     public void SelectActivity()
     {
         _extendedToggle.SetIsOnWithoutNotify(true);
+    }
+
+    public string GetActivityHash()
+    {
+        return _activityHash;
+    }
+
+    public string GetActivityName()
+    {
+        return _activityName;
     }
 }
