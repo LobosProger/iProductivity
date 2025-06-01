@@ -10,6 +10,10 @@ public enum ActivityType
 
 public class SessionManager : MonoBehaviour
 {
+    [Header("Windows")] 
+    [SerializeField] private WindowView _timerWindow;
+    [SerializeField] private WindowView _pomodoroSessionWindow;
+    [Space]
     [SerializeField] private TimerCircularSlider _timerCircularSlider;
     [SerializeField] private TimerController _timerController;
     [Space] 
@@ -25,8 +29,6 @@ public class SessionManager : MonoBehaviour
 
     private void Start()
     {
-        _timerController = GetComponent<TimerController>();
-        
         _timerController.onSessionOfTimerStarted += CaptureAtServerLaunchedActivity;
         _timerController.onSessionOfTimerEnded += CaptureAtServerCompletedActivityAndSwitchToNext;
         
@@ -130,6 +132,7 @@ public class SessionManager : MonoBehaviour
         
         _timerController.SetTimeOfTimer(timeSpan);
         _timerController.LaunchSessionOfTimer();
+        _pomodoroSessionWindow.ClosePreviousAndShowThisWindow();
         
         onActivityTypeChanged?.Invoke(_currentActivityType);
         onCycleProgressChanged?.Invoke(_completedCycles + 1, _totalCycles);
@@ -186,9 +189,6 @@ public class SessionManager : MonoBehaviour
 
     private void CloseTimerWindowAndBackToTheMainMenu()
     {
-        // Implementation depends on your window system
-        // For example:
-        // MainMenuWindow.Show();
-        // TimerWindow.Hide();
+        _timerWindow.ClosePreviousAndShowThisWindow();
     }
 }

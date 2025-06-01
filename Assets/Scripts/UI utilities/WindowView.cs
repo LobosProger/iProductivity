@@ -23,6 +23,11 @@ public class WindowView : IWindowView
 
 		onStartOpeningWindow += OnStartOpeningWindowHandler;
 		onFinishedClosingWindow += OnClosedFullyWindowHandler;
+
+		if (IsWindowOpened())
+		{
+			_previousOpenedWindows.Push(this);
+		}
 	}
 
 	private void OnDestroy()
