@@ -16,8 +16,10 @@ public class Testing : MonoBehaviour
         
         _test = false;
 
-        var comp = GetComponent<TimerController>();
-        comp.SetTimeOfTimer(new TimeSpan(minutes: minutes, seconds: seconds, hours: 0));
-        comp.LaunchSessionOfTimer();
+        // var comp = GetComponent<TimerController>();
+        // comp.SetTimeOfTimer(new TimeSpan(minutes: minutes, seconds: seconds, hours: 0));
+        // comp.LaunchSessionOfTimer();
+
+        Time.timeScale = 100;
     }
 }

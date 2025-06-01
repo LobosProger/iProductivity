@@ -9,7 +9,7 @@ using UnityEngine.UI.Extensions;
 
 public class TimerCircularSlider : MonoBehaviour
 {
-	[SerializeField] private int minutesSteps = 20;
+	[SerializeField] private int minutesSteps = 30;
 	[SerializeField] private TMP_Text sliderValueInMinutes;
 	[SerializeField] private Image fillAmountLineOfSlider;
     [SerializeField] private UI_Knob _radialSlider;

@@ -9,6 +9,7 @@ public class TimerController : MonoBehaviour
 {
     [SerializeField] private TMP_Text _remainingTimeMinutesText;
     [SerializeField] private TMP_Text _remainingTimeSecondsText;
+    [SerializeField] private Image _timerProgressBar;
     [Space]
     [Header("Timer buttons")]
     [SerializeField] private Button _stopTimerButton;
@@ -17,9 +18,11 @@ public class TimerController : MonoBehaviour
     public event Action onSessionOfTimerStarted;
     public event Action onSessionOfTimerEnded;
     public event Action onTimerStopped;
+    public event Action onTimerPaused;
+    public event Action onTimerResumed;
 
-    private bool _isPauseButtonPressed;
-    private TimeSpan _timeOfSession;
+    private TimeSpan _currentTimeOfSession;
+    private TimeSpan _initiallySetTimeOfSession;
     private CancellationTokenSource _timerToken;
 
     private const float k_timerDurationRefreshInSeconds = 1;
@@ -41,30 +44,26 @@ public class TimerController : MonoBehaviour
         if (!IsRemainedTimeAtTheTimer())
             return;
         
-        _timeOfSession = TimeSpan.Zero;
+        _currentTimeOfSession = TimeSpan.Zero;
         UpdateActualViewAtTheTimer();
         _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
         
         _timerToken?.Cancel();
-
-        // If already clicked on the pause button, we don't need to second time invoke onSessionOfTimerEnded action, on which subscribed SessionManager
-        // because it's need for handle logic of start and end of the session activity (for example, programming, reading, etc.) and it will be sent
-        // into backend as event
-        if (!_isPauseButtonPressed)
-            onSessionOfTimerEnded?.Invoke();
-        
         onTimerStopped?.Invoke();
     }
 
     private bool IsRemainedTimeAtTheTimer()
     {
-        return _timeOfSession.Subtract(TimeSpan.FromSeconds(1)).TotalSeconds > 0;
+        return _currentTimeOfSession.Subtract(TimeSpan.FromSeconds(1)).TotalSeconds > 0;
     }
     
     private void UpdateActualViewAtTheTimer()
     {
-        _remainingTimeMinutesText.text = _timeOfSession.ToString("mm");
-        _remainingTimeSecondsText.text = _timeOfSession.ToString("ss");
+        _remainingTimeMinutesText.text = _currentTimeOfSession.ToString("mm");
+        _remainingTimeSecondsText.text = _currentTimeOfSession.ToString("ss");
+        
+        var fillAmount = (float)_currentTimeOfSession.TotalSeconds / (float)_initiallySetTimeOfSession.TotalSeconds;
+        _timerProgressBar.fillAmount = fillAmount;
     }
 
     private void SwitchTimerState(bool pauseTimer)
@@ -74,38 +73,37 @@ public class TimerController : MonoBehaviour
         
         if (pauseTimer)
         {
-            onSessionOfTimerEnded?.Invoke();
+            onTimerPaused?.Invoke();
             _timerToken?.Cancel();
         }
         else
         {
-            LaunchSessionOfTimer();
+            onTimerResumed?.Invoke();
+            LaunchTimerAsync().Forget();
         }
     }
     
     public void LaunchSessionOfTimer()
     {
         onSessionOfTimerStarted?.Invoke();
-        
         _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
         
-        _isPauseButtonPressed = false;
-        _timerToken = new();
         LaunchTimerAsync().Forget();
     }
 
     private async UniTask LaunchTimerAsync()
     {
+        _timerToken = new();
         while (true)
         {
             UpdateActualViewAtTheTimer();
 
             await UniTask.WaitForSeconds(k_timerDurationRefreshInSeconds, cancellationToken: _timerToken.Token);
-            _timeOfSession = _timeOfSession.Subtract(TimeSpan.FromSeconds(k_timerDurationRefreshInSeconds));
+            _currentTimeOfSession = _currentTimeOfSession.Subtract(TimeSpan.FromSeconds(k_timerDurationRefreshInSeconds));
             
             UpdateActualViewAtTheTimer();
 
-            var isSessionOfTimerCompleted = _timeOfSession.TotalSeconds <= 0;
+            var isSessionOfTimerCompleted = _currentTimeOfSession.TotalSeconds <= 0;
             if (isSessionOfTimerCompleted)
             {
                 onSessionOfTimerEnded?.Invoke();
@@ -116,7 +114,8 @@ public class TimerController : MonoBehaviour
 
     public void SetTimeOfTimer(TimeSpan time)
     {
-        _timeOfSession = time;
+        _initiallySetTimeOfSession = time;
+        _currentTimeOfSession = time;
         _pauseAndResumeTimerToggle.SetIsOnWithoutNotify(false);
     }
 }
