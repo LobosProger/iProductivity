@@ -73,10 +73,13 @@ public class AuthorizationController : MonoBehaviour
         
         if (success)
         {
-            UpdateAuthStatus("Registration successful! Please login.");
+            //UpdateAuthStatus("Registration successful! Please login.");
+            _loginButton.onClick.Invoke();
         }
-        
-        SetButtonsInteractable(true);
+        else
+        {
+            SetButtonsInteractable(true);
+        }
     }
 
     private void OnUserLoggedIn(UserResponse user)

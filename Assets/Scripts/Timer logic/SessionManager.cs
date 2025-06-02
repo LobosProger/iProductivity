@@ -190,10 +190,10 @@ public class SessionManager : MonoBehaviour
     private async void OnTimerStopped()
     {
         Debug.Log("Timer stopped by user");
+        CloseTimerWindowAndBackToTheMainMenu();
 
         await CaptureAtServerCompletedActivityAsync();
         ResetActivitiesStats();
-        CloseTimerWindowAndBackToTheMainMenu();
     }
 
     private void ResetActivitiesStats()

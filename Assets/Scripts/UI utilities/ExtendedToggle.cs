@@ -13,7 +13,11 @@ public class ExtendedToggle : MonoBehaviour
     /// </summary>
     public UnityEvent<bool> onSwitchedToggle;
     
-    // Usable for views in editor
+    [Header("Usable for another handlers")]
+    public UnityEvent onSwitchedToggleOn; 
+    public UnityEvent onSwitchedToggleOff;
+    
+    [Header("Usable for changing views of this toggle")]
     public UnityEvent onToggledOnView; 
     public UnityEvent onToggledOffView;
     
@@ -36,9 +40,11 @@ public class ExtendedToggle : MonoBehaviour
         
         _previousToggleValue = _toggle.isOn;
         
-        var invokingAction = value ? onToggledOnView : onToggledOffView;
-        invokingAction?.Invoke();
+        var invokingActionForView = value ? onToggledOnView : onToggledOffView;
+        invokingActionForView?.Invoke();
         
+        var invokingAction = value ? onSwitchedToggleOn : onSwitchedToggleOff;
+        invokingAction?.Invoke();
         onSwitchedToggle?.Invoke(value);
     }
 
