@@ -34,7 +34,7 @@ public class AnalyticsFetcher : MonoBehaviour
             _analyticsText.text = analyticsText;
         }
         
-        _fetchAnalyticsButton.interactable = true;
+        _layoutGroupFix.FixLayout();
     }
 
     private async UniTask<string> GetAiAnalysisAsync()
