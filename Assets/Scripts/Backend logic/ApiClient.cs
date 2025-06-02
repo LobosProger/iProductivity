@@ -24,6 +24,11 @@ public class ApiClient : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        Debug.Log(_authToken);
+    }
+
     public void SetAuthToken(string token)
     {
         _authToken = token;
